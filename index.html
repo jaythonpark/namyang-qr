@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; connect-src https://jaython-macbookair.tailb5b29e.ts.net:8443; img-src 'self' data:; form-action 'none';" />
   <title>[남양출고센터] 출입 통합관리</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -243,7 +244,9 @@
 <body>
   <div class="wrap" id="app"></div>
   <script>
-    const SUBMIT_ENDPOINT = 'https://jaython-macbookair.tailb5b29e.ts.net:8443/submit';
+    const API_ORIGIN = 'https://jaython-macbookair.tailb5b29e.ts.net:8443';
+    const SUBMIT_ENDPOINT = API_ORIGIN + '/submit';
+    const CHALLENGE_ENDPOINT = API_ORIGIN + '/challenge';
     const mode = new URLSearchParams(location.search).get('mode') === '2' ? '2' : '1';
     let selectedPurpose = '';
     let selectedVisitorType = '';
@@ -266,10 +269,18 @@
       el.style.display = 'block';
     }
     async function postToServer(payload) {
+      const chRes = await fetch(CHALLENGE_ENDPOINT, { cache: 'no-store' });
+      const chRaw = await chRes.text();
+      let chData;
+      try { chData = JSON.parse(chRaw); } catch (_) { throw new Error('보안 토큰 발급 오류 (' + chRes.status + ')'); }
+      if (!chRes.ok || !chData.ok || !chData.token) throw new Error(chData.message || '보안 토큰 발급 실패');
+
+      const hp = (document.getElementById('hp-website')?.value || '').trim();
+      const bodyPayload = { ...payload, submitToken: chData.token, website: hp };
       const r = await fetch(SUBMIT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(bodyPayload),
       });
       const raw = await r.text();
       let d;
@@ -353,7 +364,8 @@
                   <ul class="sub-list">
                     <li><b>수집항목</b> : 성명, 소속, 연락처, 출입일시, 차량번호(센터내 출입시)</li>
                     <li><b>수집/이용 목적</b> : 출입 허가 및 신원 확인, 보안 관리, 비상 연락, 안전사고 발생 시 대응, 차량의 출입허가 및 차량 신원 확인</li>
-                    <li><b>보유/이용 기간</b> : 출입 종료 후 1년간 보관 후 파기</li>
+                    <li><b>보유/이용 기간</b> : 출입 종료 후 1년간 보관 후 자동 파기</li>
+                    <li><b>실시간 알림 전송</b> : 출입 현황 관리 목적에 한해 사내 운영 텔레그램 채널(남양출고봇)로 성명·연락처·차량번호가 비식별(마스킹) 처리된 요약 알림이 전송됩니다.</li>
                   </ul>
                 </li>
                 <li>위 개인정보의 수집/이용에 동의하지 않을 권리가 있습니다.</li>
@@ -361,6 +373,7 @@
               </ol>
             </div>
             <label class="check-row"><input type="checkbox" id="f1-privacy" /><span>[필수] 위 개인정보 수집 및 이용에 동의합니다.</span></label>
+            <input type="text" id="hp-website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true" />
           </div>
 
           <div class="card">
@@ -474,9 +487,11 @@
           <p>차량점검(캠페인) 대상자만 작업 완료 후 작성해 주세요. 완료시간은 제출 시각으로 자동 기록됩니다.</p>
         </div>
         <div id="form-box">
-          <div class="info-banner">💡 <b>차량점검(캠페인) 대상자 전용</b>입니다. 1차 출입등록 시 입력한 <b>업체명 · 성명/직급 · 연락처</b>와 동일하게 입력하시면 자동 매칭됩니다.</div>
+          <div class="info-banner">💡 <b>차량점검(캠페인) 대상자 전용</b>입니다. 1차 출입등록 시 발급된 <b>확인코드(예: NY-1234)</b>와 <b>업체명 · 성명/직급 · 연락처</b>를 동일하게 입력해 주세요.</div>
+          <input type="text" id="hp-website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true" />
           <div class="card">
             <h2 class="sec-title">👤 작업자 확인 정보</h2>
+            <div class="field"><label for="f2-code">0) 1차 접수 확인코드<span class="req">*</span></label><input id="f2-code" class="inp" type="text" placeholder="예: NY-1234 (1차 등록 완료 화면에서 확인)" /></div>
             <div class="field"><label for="f2-company">1) 업체명(소속)<span class="req">*</span></label><input id="f2-company" class="inp" type="text" placeholder="예: 현대자동차 울산공장 품관2부" /></div>
             <div class="field"><label for="f2-name">2) 성명/직급<span class="req">*</span></label><input id="f2-name" class="inp" type="text" placeholder="예: 홍길동(매니저)" /></div>
             <div class="field"><label for="f2-phone">3) 연락처<span class="req">*</span></label><input id="f2-phone" class="inp" type="tel" inputmode="numeric" oninput="formatPhone(this)" placeholder="예: 010-1234-1234" /></div>
@@ -561,11 +576,12 @@
         document.getElementById('form-box').style.display = 'none';
         document.getElementById('done-box').style.display = 'block';
         document.getElementById('done-ts').textContent = res.requiresSecondForm
-          ? `등록 시각: ${res.timestamp} · 작업 완료 후 2차 완료 QR을 스캔해 주세요.`
-          : `등록 시각: ${res.timestamp} · 출입 등록이 완료되었습니다. (2차 양식 작성 불필요)`;
+          ? `확인코드: ${res.confirmCode} (2차 완료 등록 시 필요) · 등록 시각: ${res.timestamp}`
+          : `확인코드: ${res.confirmCode} · 등록 시각: ${res.timestamp} (2차 양식 작성 불필요)`;
         const s = res.summary || {};
         if (selectedPurpose === '차량인수') {
           document.getElementById('done-tbl').innerHTML =
+            `<tr><th>확인코드</th><td><b>${esc(res.confirmCode)}</b></td></tr>` +
             `<tr><th>방문목적</th><td>${esc(s.purpose)}</td></tr>` +
             `<tr><th>방문자 구분</th><td>${esc(s.visitorType)}</td></tr>` +
             `<tr><th>인수처 구분</th><td>${esc(s.pickupPlace)}</td></tr>` +
@@ -574,6 +590,7 @@
             `<tr><th>연락처</th><td>${esc(s.phone)}</td></tr>`;
         } else {
           document.getElementById('done-tbl').innerHTML =
+            `<tr><th>확인코드</th><td><b>${esc(res.confirmCode)}</b></td></tr>` +
             `<tr><th>방문목적</th><td>${esc(s.purpose)}</td></tr>` +
             `<tr><th>업체명</th><td>${esc(s.company)}</td></tr>` +
             `<tr><th>성명/직급</th><td>${esc(s.name)}</td></tr>` +
@@ -592,6 +609,7 @@
       document.getElementById('f2-err').style.display = 'none';
       const p = {
         mode: '2',
+        confirmCode: document.getElementById('f2-code').value.trim().toUpperCase(),
         company: document.getElementById('f2-company').value.trim(),
         name: document.getElementById('f2-name').value.trim(),
         phone: document.getElementById('f2-phone').value.trim(),
@@ -599,7 +617,7 @@
         fixedCount: document.getElementById('f2-fixed').value.trim(),
         note: document.getElementById('f2-note').value.trim() || '특이사항 없음',
       };
-      if (!p.company || !p.name || !p.phone || p.inspectedCount === '' || p.fixedCount === '') return showErr('f2-err', '필수 항목을 모두 입력해 주세요.');
+      if (!p.confirmCode || !p.company || !p.name || !p.phone || p.inspectedCount === '' || p.fixedCount === '') return showErr('f2-err', '1차 확인코드 및 모든 필수 항목을 입력해 주세요.');
       const btn = document.getElementById('f2-btn');
       btn.disabled = true; btn.textContent = '⏳ 전송 중...';
       try {
