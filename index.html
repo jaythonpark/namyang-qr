@@ -270,7 +270,9 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const d = await r.json();
+      const raw = await r.text();
+      let d;
+      try { d = JSON.parse(raw); } catch (_) { throw new Error('서버 응답 오류 (' + r.status + ')'); }
       if (!r.ok || !d.ok) throw new Error(d.message || '서버 저장 실패');
       return d;
     }
