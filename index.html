@@ -245,6 +245,8 @@
     const SUBMIT_ENDPOINT = 'https://jaython-macbookair.tailb5b29e.ts.net:8443/submit';
     const mode = new URLSearchParams(location.search).get('mode') === '2' ? '2' : '1';
     let selectedPurpose = '';
+    let selectedVisitorType = '';
+    let selectedPickupPlace = '';
 
     function esc(s) {
       return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -276,9 +278,14 @@
       document.querySelectorAll('.purpose-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.val === val);
       });
+      const isPickup = (val === '차량인수');
       const isCampaign = (val === '차량점검(캠페인)');
+      const pickupCard = document.getElementById('f1-pickup-card');
+      const generalCard = document.getElementById('f1-general-card');
       const campBox = document.getElementById('f1-campaign-box');
       const noticeEl = document.getElementById('f1-purpose-notice');
+      if (pickupCard) pickupCard.style.display = isPickup ? 'block' : 'none';
+      if (generalCard) generalCard.style.display = isPickup ? 'none' : 'block';
       if (campBox) campBox.style.display = isCampaign ? 'block' : 'none';
       if (noticeEl) {
         noticeEl.style.display = 'block';
@@ -286,6 +293,13 @@
           ? '📌 차량점검(캠페인) 대상자는 작업 완료 후 반드시 2차 완료 QR을 추가 작성해 주세요.'
           : `✅ '${val}' 방문자는 1차 출입등록만 작성하시면 완료됩니다. (2차 양식 작성 불필요)`;
       }
+    }
+    function selectSingleOption(group, val) {
+      if (group === 'visitor') selectedVisitorType = val;
+      if (group === 'pickup') selectedPickupPlace = val;
+      document.querySelectorAll(`.opt-btn[data-group="${group}"]`).forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.val === val);
+      });
     }
 
     if (mode === '1') {
@@ -353,7 +367,34 @@
             <div id="f1-purpose-notice" class="warn-banner" style="display:none;"></div>
           </div>
 
-          <div class="card">
+          <div id="f1-pickup-card" class="card" style="display:none;">
+            <h2 class="sec-title">🚗 차량인수 출입자 정보 입력</h2>
+            <div class="field">
+              <label>1. 방문자 구분<span class="req">*</span></label>
+              <div class="purpose-grid">
+                <button type="button" class="purpose-btn opt-btn" data-group="visitor" data-val="차량계약자" onclick="selectSingleOption('visitor','차량계약자')">차량계약자</button>
+                <button type="button" class="purpose-btn opt-btn" data-group="visitor" data-val="차량인수 지정자(카마스터, 대리인)" onclick="selectSingleOption('visitor','차량인수 지정자(카마스터, 대리인)')">차량인수 지정자<br/>(카마스터, 대리인)</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>2. 인수처 구분<span class="req">*</span></label>
+              <div class="purpose-grid">
+                <button type="button" class="purpose-btn opt-btn" data-group="pickup" data-val="배달탁송사" onclick="selectSingleOption('pickup','배달탁송사')">배달탁송사</button>
+                <button type="button" class="purpose-btn opt-btn" data-group="pickup" data-val="현대자동차(방문출고 예약자 한정)" onclick="selectSingleOption('pickup','현대자동차(방문출고 예약자 한정)')">현대자동차<br/>(방문출고 예약자 한정)</button>
+              </div>
+            </div>
+            <div class="field"><label for="fp-car">3. 인수받으실 차종(싼타페, 투싼 등)<span class="req">*</span></label><input id="fp-car" class="inp" type="text" placeholder="예: 싼타페, 투싼, GV70 등" /></div>
+            <div class="field"><label for="fp-name">4. 방문자 성함<span class="req">*</span></label><input id="fp-name" class="inp" type="text" placeholder="예: 홍길동" /></div>
+            <div class="field"><label for="fp-phone">5. 방문자 연락처<span class="req">*</span></label><input id="fp-phone" class="inp" type="tel" inputmode="numeric" oninput="formatPhone(this)" placeholder="숫자만 입력 (예: 010-0000-0000)" /></div>
+            <div class="field">
+              <label class="check-row"><input type="checkbox" id="fp-smoking" /><span>6. 흡연은 지정된 흡연장소에서만 가능합니다.<span class="req">*</span></span></label>
+            </div>
+            <div class="field">
+              <label class="check-row"><input type="checkbox" id="fp-doc" /><span>7. 차량 인수 후 나가실때 안내받으신 '서류'를 정문 제출해야 합니다.<span class="req">*</span></span></label>
+            </div>
+          </div>
+
+          <div id="f1-general-card" class="card">
             <h2 class="sec-title">✍️ 출입자 정보 입력</h2>
             <div class="field"><label for="f1-company">1) 업체명(소속)<span class="req">*</span></label><input id="f1-company" class="inp" type="text" placeholder="예: 현대자동차 울산공장 품관2부" /></div>
             <div class="field"><label for="f1-name">2) 성명/직급<span class="req">*</span></label><input id="f1-name" class="inp" type="text" placeholder="예: 홍길동(매니저)" /></div>
@@ -414,24 +455,46 @@
 
     async function submit1() {
       document.getElementById('f1-err').style.display = 'none';
-      const p = {
-        mode: '1',
-        purpose: selectedPurpose,
-        agreeSecurity: document.getElementById('f1-security').checked,
-        agreeSafety: document.getElementById('f1-safety').checked,
-        agreePrivacy: document.getElementById('f1-privacy').checked,
-        company: document.getElementById('f1-company').value.trim(),
-        name: document.getElementById('f1-name').value.trim(),
-        headcount: document.getElementById('f1-headcount').value.trim(),
-        phone: document.getElementById('f1-phone').value.trim(),
-        carNo: document.getElementById('f1-carno').value.trim(),
-        carModel: document.getElementById('f1-car').value.trim(),
-        content: document.getElementById('f1-content').value.trim(),
-      };
-      if (!p.agreeSecurity || !p.agreeSafety || !p.agreePrivacy) return showErr('f1-err', '보안 유지, 안전 수칙, 개인정보 수집·이용 필수 동의 3건을 모두 체크해 주세요.');
-      if (!p.purpose) return showErr('f1-err', '방문목적을 선택해 주세요.');
-      if (!p.company || !p.name || !p.headcount || !p.phone) return showErr('f1-err', '업체명(소속), 성명/직급, 인원수, 연락처를 모두 입력해 주세요.');
-      if (p.purpose === '차량점검(캠페인)' && (!p.carModel || !p.content)) return showErr('f1-err', '차량점검(캠페인) 대상자는 점검차종과 점검내용을 입력해 주세요.');
+      const agreeSecurity = document.getElementById('f1-security').checked;
+      const agreeSafety = document.getElementById('f1-safety').checked;
+      const agreePrivacy = document.getElementById('f1-privacy').checked;
+      if (!agreeSecurity || !agreeSafety || !agreePrivacy) return showErr('f1-err', '보안 유지, 안전 수칙, 개인정보 수집·이용 필수 동의 3건을 모두 체크해 주세요.');
+      if (!selectedPurpose) return showErr('f1-err', '방문목적을 선택해 주세요.');
+
+      let p;
+      if (selectedPurpose === '차량인수') {
+        p = {
+          mode: '1',
+          purpose: '차량인수',
+          agreeSecurity, agreeSafety, agreePrivacy,
+          visitorType: selectedVisitorType,
+          pickupPlace: selectedPickupPlace,
+          carModel: document.getElementById('fp-car').value.trim(),
+          name: document.getElementById('fp-name').value.trim(),
+          phone: document.getElementById('fp-phone').value.trim(),
+          agreeSmoking: document.getElementById('fp-smoking').checked,
+          agreeDocSubmit: document.getElementById('fp-doc').checked,
+        };
+        if (!p.visitorType) return showErr('f1-err', '1. 방문자 구분을 선택해 주세요.');
+        if (!p.pickupPlace) return showErr('f1-err', '2. 인수처 구분을 선택해 주세요.');
+        if (!p.carModel || !p.name || !p.phone) return showErr('f1-err', '3~5번 항목(차종, 방문자 성함, 방문자 연락처)을 모두 입력해 주세요.');
+        if (!p.agreeSmoking || !p.agreeDocSubmit) return showErr('f1-err', '6~7번 필수 안내 사항 체크박스를 모두 체크해 주세요.');
+      } else {
+        p = {
+          mode: '1',
+          purpose: selectedPurpose,
+          agreeSecurity, agreeSafety, agreePrivacy,
+          company: document.getElementById('f1-company').value.trim(),
+          name: document.getElementById('f1-name').value.trim(),
+          headcount: document.getElementById('f1-headcount').value.trim(),
+          phone: document.getElementById('f1-phone').value.trim(),
+          carNo: document.getElementById('f1-carno').value.trim(),
+          carModel: document.getElementById('f1-car').value.trim(),
+          content: document.getElementById('f1-content').value.trim(),
+        };
+        if (!p.company || !p.name || !p.headcount || !p.phone) return showErr('f1-err', '업체명(소속), 성명/직급, 인원수, 연락처를 모두 입력해 주세요.');
+        if (p.purpose === '차량점검(캠페인)' && (!p.carModel || !p.content)) return showErr('f1-err', '차량점검(캠페인) 대상자는 점검차종과 점검내용을 입력해 주세요.');
+      }
 
       const btn = document.getElementById('f1-btn');
       btn.disabled = true; btn.textContent = '⏳ 등록 중...';
@@ -443,14 +506,24 @@
           ? `등록 시각: ${res.timestamp} · 작업 완료 후 2차 완료 QR을 스캔해 주세요.`
           : `등록 시각: ${res.timestamp} · 출입 등록이 완료되었습니다. (2차 양식 작성 불필요)`;
         const s = res.summary || {};
-        document.getElementById('done-tbl').innerHTML =
-          `<tr><th>방문목적</th><td>${esc(s.purpose)}</td></tr>` +
-          `<tr><th>업체명</th><td>${esc(s.company)}</td></tr>` +
-          `<tr><th>성명/직급</th><td>${esc(s.name)}</td></tr>` +
-          `<tr><th>인원수</th><td>${esc(s.headcount)}</td></tr>` +
-          `<tr><th>연락처</th><td>${esc(s.phone)}</td></tr>` +
-          `<tr><th>차량번호</th><td>${esc(s.carNo || '-')}</td></tr>` +
-          (res.requiresSecondForm ? `<tr><th>점검차종</th><td>${esc(s.carModel)}</td></tr><tr><th>점검내용</th><td>${esc(s.content)}</td></tr>` : '');
+        if (selectedPurpose === '차량인수') {
+          document.getElementById('done-tbl').innerHTML =
+            `<tr><th>방문목적</th><td>${esc(s.purpose)}</td></tr>` +
+            `<tr><th>방문자 구분</th><td>${esc(s.visitorType)}</td></tr>` +
+            `<tr><th>인수처 구분</th><td>${esc(s.pickupPlace)}</td></tr>` +
+            `<tr><th>인수 차종</th><td>${esc(s.carModel)}</td></tr>` +
+            `<tr><th>방문자 성함</th><td>${esc(s.name)}</td></tr>` +
+            `<tr><th>연락처</th><td>${esc(s.phone)}</td></tr>`;
+        } else {
+          document.getElementById('done-tbl').innerHTML =
+            `<tr><th>방문목적</th><td>${esc(s.purpose)}</td></tr>` +
+            `<tr><th>업체명</th><td>${esc(s.company)}</td></tr>` +
+            `<tr><th>성명/직급</th><td>${esc(s.name)}</td></tr>` +
+            `<tr><th>인원수</th><td>${esc(s.headcount)}</td></tr>` +
+            `<tr><th>연락처</th><td>${esc(s.phone)}</td></tr>` +
+            `<tr><th>차량번호</th><td>${esc(s.carNo || '-')}</td></tr>` +
+            (res.requiresSecondForm ? `<tr><th>점검차종</th><td>${esc(s.carModel)}</td></tr><tr><th>점검내용</th><td>${esc(s.content)}</td></tr>` : '');
+        }
       } catch (e) {
         btn.disabled = false; btn.textContent = '✅ 1차 출입 등록 제출';
         showErr('f1-err', '전송 오류: ' + e.message);
