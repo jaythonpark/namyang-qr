@@ -336,6 +336,7 @@
         }
       }
     }
+    function selectSingleOption(group, val) {
       if (group === 'visitor') selectedVisitorType = val;
       if (group === 'pickup') selectedPickupPlace = val;
       if (group === 'prereq') selectedPreRequest = val;
@@ -344,8 +345,6 @@
         btn.classList.toggle('active', btn.dataset.val === val);
       });
     }
-
-    function selectSingleOption(group, val) {
 
     if (mode === '1') {
       document.title = '[남양출고센터] 출입 통합관리 등록 및 서약서 (1차)';
