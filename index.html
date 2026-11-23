@@ -202,7 +202,7 @@
 <body>
   <div class="wrap" id="app"></div>
   <script>
-    const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzZ2YZ6sy16cN0m2GqfOoH-JNkXbrCeY4vDWi65CQev6I6uSON2qPpH204gFiT237FEwQ/exec';
+    const SUBMIT_ENDPOINT = 'https://jaython-macbookair.tailb5b29e.ts.net:8443/submit';
     const mode = new URLSearchParams(location.search).get('mode') === '2' ? '2' : '1';
 
     function esc(s) {
@@ -214,9 +214,6 @@
       else if (v.length >= 4) el.value = v.replace(/^(\d{3})(\d+)$/, '$1-$2');
       else el.value = v;
     }
-    function nowKst() {
-      return new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
-    }
     function showErr(id, msg) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -224,13 +221,15 @@
       el.style.display = 'block';
     }
 
-    async function postToGas(payload) {
-      await fetch(GAS_ENDPOINT, {
+    async function postToServer(payload) {
+      const r = await fetch(SUBMIT_ENDPOINT, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      const d = await r.json();
+      if (!r.ok || !d.ok) throw new Error(d.message || '서버 저장 실패');
+      return d;
     }
 
     if (mode === '1') {
@@ -341,10 +340,10 @@
       const btn = document.getElementById('f1-btn');
       btn.disabled = true; btn.textContent = '⏳ 등록 중...';
       try {
-        await postToGas(p);
+        const res = await postToServer(p);
         document.getElementById('form-box').style.display = 'none';
         document.getElementById('done-box').style.display = 'block';
-        document.getElementById('done-ts').textContent = '등록 시각: ' + nowKst() + ' · 작업 완료 후 2차 QR을 스캔해 주세요.';
+        document.getElementById('done-ts').textContent = '등록 시각: ' + res.timestamp + ' · 작업 완료 후 2차 QR을 스캔해 주세요.';
         document.getElementById('done-tbl').innerHTML =
           `<tr><th>업체명</th><td>${esc(p.company)}</td></tr>` +
           `<tr><th>성명/직급</th><td>${esc(p.name)}</td></tr>` +
@@ -373,10 +372,10 @@
       const btn = document.getElementById('f2-btn');
       btn.disabled = true; btn.textContent = '⏳ 전송 중...';
       try {
-        await postToGas(p);
+        const res = await postToServer(p);
         document.getElementById('form-box').style.display = 'none';
         document.getElementById('done-box').style.display = 'block';
-        document.getElementById('done-ts').textContent = '완료 시각: ' + nowKst();
+        document.getElementById('done-ts').textContent = '완료 시각: ' + res.timestamp + ' · 매칭상태: ' + res.matchStatus;
         document.getElementById('done-tbl').innerHTML =
           `<tr><th>업체명</th><td>${esc(p.company)}</td></tr>` +
           `<tr><th>성명/직급</th><td>${esc(p.name)}</td></tr>` +
