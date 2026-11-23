@@ -247,7 +247,9 @@
     const API_ORIGIN = 'https://jaython-macbookair.tailb5b29e.ts.net:8443';
     const SUBMIT_ENDPOINT = API_ORIGIN + '/submit';
     const CHALLENGE_ENDPOINT = API_ORIGIN + '/challenge';
-    const mode = new URLSearchParams(location.search).get('mode') === '2' ? '2' : '1';
+    const urlParams = new URLSearchParams(location.search);
+    const mode = urlParams.get('mode') === '2' ? '2' : '1';
+    const qrKey = (urlParams.get('k') || '').trim();
     let selectedPurpose = '';
     let selectedVisitorType = '';
     let selectedPickupPlace = '';
@@ -284,7 +286,7 @@
       if (!chRes.ok || !chData.ok || !chData.token) throw new Error(chData.message || '보안 토큰 발급 실패');
 
       const hp = (document.getElementById('hp-website')?.value || '').trim();
-      const bodyPayload = { ...payload, submitToken: chData.token, website: hp };
+      const bodyPayload = { ...payload, submitToken: chData.token, website: hp, qrKey };
       const r = await fetch(SUBMIT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
