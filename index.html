@@ -299,11 +299,13 @@
       const generalCard = document.getElementById('f1-general-card');
       const campNoticeCard = document.getElementById('f1-campaign-notice-card');
       const campBox = document.getElementById('f1-campaign-box');
+      const noPhotoBox = document.getElementById('f1-no-photo-box');
       const noticeEl = document.getElementById('f1-purpose-notice');
       if (pickupCard) pickupCard.style.display = isPickup ? 'block' : 'none';
       if (generalCard) generalCard.style.display = isPickup ? 'none' : 'block';
       if (campNoticeCard) campNoticeCard.style.display = isCampaign ? 'block' : 'none';
       if (campBox) campBox.style.display = isCampaign ? 'block' : 'none';
+      if (noPhotoBox) noPhotoBox.style.display = (isPickup || isCampaign) ? 'block' : 'none';
       if (noticeEl) {
         noticeEl.style.display = 'block';
         noticeEl.textContent = isCampaign
@@ -468,6 +470,13 @@
             </div>
           </div>
 
+          <div id="f1-no-photo-box" class="card" style="display:none;border-color:#fca5a5;background:#fef2f2;">
+            <label class="check-row" style="background:#ffffff;border-color:#f87171;color:#991b1b;">
+              <input type="checkbox" id="f1-no-photo" />
+              <span>[필수] 남양출고센터 내부는 보안장소로 사진 촬영이 불가합니다.<span class="req">*</span></span>
+            </label>
+          </div>
+
           <div id="f1-err" class="err-box"></div>
           <button type="button" id="f1-btn" class="btn-submit" onclick="submit1()">✅ 1차 출입 등록 제출</button>
         </div>
@@ -504,6 +513,12 @@
             </div>
             <div class="field"><label for="f2-note">특이사항</label><textarea id="f2-note" class="ta" placeholder="예: 특이사항 없음 (특이사항 발생 시 상세 내용 입력)"></textarea></div>
           </div>
+          <div class="card" style="border-color:#fca5a5;background:#fef2f2;">
+            <label class="check-row" style="background:#ffffff;border-color:#f87171;color:#991b1b;">
+              <input type="checkbox" id="f2-no-photo" />
+              <span>[필수] 남양출고센터 내부는 보안장소로 사진 촬영이 불가합니다.<span class="req">*</span></span>
+            </label>
+          </div>
           <div id="f2-err" class="err-box"></div>
           <button type="button" id="f2-btn" class="btn-submit mode2" onclick="submit2()">🏁 2차 완료 통보 제출</button>
         </div>
@@ -523,13 +538,17 @@
       const agreePrivacy = document.getElementById('f1-privacy').checked;
       if (!agreeSecurity || !agreeSafety || !agreePrivacy) return showErr('f1-err', '보안 유지, 안전 수칙, 개인정보 수집·이용 필수 동의 3건을 모두 체크해 주세요.');
       if (!selectedPurpose) return showErr('f1-err', '방문목적을 선택해 주세요.');
+      const agreeNoPhoto = document.getElementById('f1-no-photo')?.checked || false;
+      if ((selectedPurpose === '차량인수' || selectedPurpose === '차량점검(캠페인)') && !agreeNoPhoto) {
+        return showErr('f1-err', '남양출고센터 내부 사진 촬영 불가 안내 체크박스를 확인해 주세요.');
+      }
 
       let p;
       if (selectedPurpose === '차량인수') {
         p = {
           mode: '1',
           purpose: '차량인수',
-          agreeSecurity, agreeSafety, agreePrivacy,
+          agreeSecurity, agreeSafety, agreePrivacy, agreeNoPhoto,
           visitorType: selectedVisitorType,
           pickupPlace: selectedPickupPlace,
           carModel: document.getElementById('fp-car').value.trim(),
@@ -546,7 +565,7 @@
         p = {
           mode: '1',
           purpose: selectedPurpose,
-          agreeSecurity, agreeSafety, agreePrivacy,
+          agreeSecurity, agreeSafety, agreePrivacy, agreeNoPhoto,
           company: document.getElementById('f1-company').value.trim(),
           name: document.getElementById('f1-name').value.trim(),
           headcount: document.getElementById('f1-headcount').value.trim(),
@@ -607,8 +626,11 @@
 
     async function submit2() {
       document.getElementById('f2-err').style.display = 'none';
+      const agreeNoPhoto = document.getElementById('f2-no-photo')?.checked || false;
+      if (!agreeNoPhoto) return showErr('f2-err', '남양출고센터 내부 사진 촬영 불가 안내 체크박스를 확인해 주세요.');
       const p = {
         mode: '2',
+        agreeNoPhoto,
         confirmCode: document.getElementById('f2-code').value.trim().toUpperCase(),
         company: document.getElementById('f2-company').value.trim(),
         name: document.getElementById('f2-name').value.trim(),
