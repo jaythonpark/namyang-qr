@@ -286,10 +286,12 @@
       const isCampaign = (val === '차량점검(캠페인)');
       const pickupCard = document.getElementById('f1-pickup-card');
       const generalCard = document.getElementById('f1-general-card');
+      const campNoticeCard = document.getElementById('f1-campaign-notice-card');
       const campBox = document.getElementById('f1-campaign-box');
       const noticeEl = document.getElementById('f1-purpose-notice');
       if (pickupCard) pickupCard.style.display = isPickup ? 'block' : 'none';
       if (generalCard) generalCard.style.display = isPickup ? 'none' : 'block';
+      if (campNoticeCard) campNoticeCard.style.display = isCampaign ? 'block' : 'none';
       if (campBox) campBox.style.display = isCampaign ? 'block' : 'none';
       if (noticeEl) {
         noticeEl.style.display = 'block';
@@ -372,6 +374,33 @@
             <div id="f1-purpose-notice" class="warn-banner" style="display:none;"></div>
           </div>
 
+          <div id="f1-campaign-notice-card" class="card" style="display:none;border-color:#fdba74;">
+            <h2 class="sec-title" style="color:#9a3412;">📋 남양출고센터 내수 완성차 사전점검 주의사항 및 금지사항</h2>
+            <div class="notice-box" style="background:#fff7ed;border-color:#fdba74;">
+              <div style="font-size:12.5px;color:#7c2d12;margin-bottom:8px;">사전점검 실시 및 완료 후 아래 내용에 대한 위반 사항이 발견될 경우, 출고센터에서 CLAIM을 제기하여도 일체 수용할 것을 서약합니다. <i>(직영 및 협력업체 동일 적용)</i></div>
+              <div style="font-weight:800;color:#0f172a;margin-bottom:4px;">▣ 주의사항</div>
+              <ol class="notice-list" style="margin-bottom:10px;">
+                <li>작업 중 옆 차량과의 간격을 충분히 확보하여 도어 개폐로 인한 덴트(DENT) 및 외관 손상이 발생하지 않도록 할 것</li>
+                <li>복장의 버클, 단추, 지퍼, 명찰 등 돌출물로 인한 차량 내·외관 손상에 주의할 것</li>
+                <li>실내 작업 중 부주의로 인한 부품 손상 및 실내 오염이 발생하지 않도록 주의할 것</li>
+                <li>작업 완료 후 도어 닫힘 불량 및 시동 방치로 인한 배터리 방전, 유리·선루프 개방으로 인한 빗물 유입 등이 발생하지 않도록 주의할 것</li>
+                <li>점검 업무와 무관한 구역 및 유·무형의 회사 재산에 피해가 발생하지 않도록 할 것</li>
+                <li><b>당사의 보안 규정을 철저히 준수할 것</b></li>
+              </ol>
+              <div style="font-weight:800;color:#991b1b;margin-bottom:4px;">▣ 금지사항</div>
+              <ol class="notice-list">
+                <li><b>휴대전화를 이용한 사진 촬영 및 전송 절대 금지</b></li>
+                <li>차량 실내 승·하차 시 플로어 카펫 오염 방지를 위해 보호 매트 등을 사용하여 신발이 카펫에 직접 닿지 않도록 할 것 <i>(매트류 미사용 시 차량 실내 출입 금지)</i></li>
+                <li>임시번호판 부착 차량은 출고 대상 차량으로 일체 점검하지 말 것 <i>(사전 협조 요청)</i></li>
+                <li>허가 없이 차량 운전 및 이동 금지 <i>(차량 접촉 및 충돌 사고 위험)</i></li>
+                <li>점검 인원의 차량 인도장 및 치장장 출입 금지 <i>(필요 시 '남양출고 품질담당자' 사전 협조 요청 필수)</i></li>
+                <li>점검 작업 후 작업 표시 스티커 및 문제 차량 TAG 부착 금지</li>
+                <li>사전점검 실시 전 또는 실시 중이라도 눈·비·강풍(강우량 무관) 발생 시 사전점검 허가 불가</li>
+              </ol>
+            </div>
+            <label class="check-row"><input type="checkbox" id="f1-camp-pledge" /><span>[필수] 위 사전점검 주의사항 및 금지사항을 숙지하였으며, 위반 시 CLAIM 수용을 서약합니다.<span class="req">*</span></span></label>
+          </div>
+
           <div id="f1-pickup-card" class="card" style="display:none;">
             <h2 class="sec-title">🚗 차량인수 출입자 정보 입력</h2>
             <div class="field">
@@ -418,32 +447,11 @@
                   <button type="button" class="purpose-btn opt-btn" data-group="prereq" data-val="실시(유선연락)" onclick="selectSingleOption('prereq','실시(유선연락)')">실시(유선연락)</button>
                 </div>
               </div>
-              <div class="notice-box" style="margin-top:14px;background:#fff7ed;border-color:#fdba74;">
-                <div style="font-weight:800;font-size:13.5px;color:#9a3412;margin-bottom:6px;">📋 남양출고센터 내수 완성차 사전점검 주의사항 및 금지사항</div>
-                <div style="font-size:12px;color:#7c2d12;margin-bottom:8px;">사전점검 실시 및 완료후 아래 내용에 대한 위반사항 발견시 출고센터에서 CLAIM을 제기하여도 일체 수용할 것을 서약 합니다. (직영 및 협력업체 동일 적용)</div>
-                <div style="font-weight:800;color:#0f172a;margin-bottom:4px;">▣ 주의사항</div>
-                <ol class="notice-list" style="margin-bottom:8px;">
-                  <li>작업중 옆차와의 간격을 인식하지 못하고 도어 OPEN하여 DENT &amp; 외관손상 발생치 않도록 할 것</li>
-                  <li>신체 복장에서 버클, 단추, 지퍼가이드, 명찰 등 복장의 돌출물에 의한 내외관 손상 주의</li>
-                  <li>실내 작업중 부주의로 인한 부품손상, 실내오염 등 주의</li>
-                  <li>작업완료후 도어 닫힘 불량 및 시동방치로 인한 배터리 방전, 도어 글라스 및 선루프 오픈되어 빗물 유입 등이 발생치 않도록 주의할 것</li>
-                  <li>기타 작업구역의 점검과 관련없이 유무형의 회사 재산에 대한 피해가 발생치 않도록 할 것</li>
-                  <li><b>당사의 보안규정을 철저히 준수할 것.</b></li>
-                </ol>
-                <div style="font-weight:800;color:#991b1b;margin-bottom:4px;">▣ 금지사항</div>
-                <ol class="notice-list">
-                  <li><b>핸드폰으로 사진촬영 및 전송 절대 금지</b> (↳ 적발시 당사 보안규정에 의거 처리)</li>
-                  <li>차량 실내 승 하차시 플로워 카페트 오염을 방지하기 위해 매트 등을 사용하여 신발이 카페트에 직접 닿지 않도록 할 것. (매트류 사용없이 차량 실내 출입금지)</li>
-                  <li>임시번호 부착차량은 출고 차량으로 일체 점검하지 말 것 (사전협조요청)</li>
-                  <li>허가 없이 차량 운전 및 이동금지 (차량 접촉 및 충돌사고 발생할 수 있음)</li>
-                  <li>점검인원 차량 인도장 및 치장장 출입금지</li>
-                  <li>점검 작업후 작업표시 스티커 및 문제차 TAG 부착 금지.</li>
-                  <li>사전점검 실시전 또는 실시중이라도 눈,비,강풍 (강우량 상관없이) 발생시 사전점검 허가 불가</li>
-                </ol>
-              </div>
-              <div class="field" style="margin-top:8px;">
-                <label class="check-row"><input type="checkbox" id="f1-camp-pledge" /><span>[필수] 위 사전점검 주의사항 및 금지사항을 숙지하였으며, 위반 시 CLAIM 수용을 서약합니다.<span class="req">*</span></span></label>
-              </div>
+              <div class="field"><label class="check-row"><input type="checkbox" id="f1-camp-9" /><span>9) 흡연은 지정된 흡연장소에서만 가능합니다. (흡연장소 외 적발 시 영구 출입 불가)<span class="req">*</span></span></label></div>
+              <div class="field"><label class="check-row"><input type="checkbox" id="f1-camp-10" /><span>10) 인가된 장비 외 개인 장비는 소지할 수 없습니다. (2층 회의실 보관 필수)<span class="req">*</span></span></label></div>
+              <div class="field"><label class="check-row"><input type="checkbox" id="f1-camp-11" /><span>11) 가방을 소지한 상태로 차량 점검을 진행할 수 없습니다.<span class="req">*</span></span></label></div>
+              <div class="field"><label class="check-row"><input type="checkbox" id="f1-camp-12" /><span>12) 점검 가능 시간은 오전 08:00 ~ 16:30입니다. (시간 엄수)<span class="req">*</span></span></label></div>
+              <div class="field"><label class="check-row"><input type="checkbox" id="f1-camp-13" /><span>13) 우천 또는 강설 시 즉시 작업을 중단하고 2층 사무실로 방문해 주세요.<span class="req">*</span></span></label></div>
             </div>
           </div>
 
@@ -536,9 +544,13 @@
         };
         if (!p.company || !p.name || !p.headcount || !p.phone) return showErr('f1-err', '업체명(소속), 성명/직급, 인원수, 연락처를 모두 입력해 주세요.');
         if (p.purpose === '차량점검(캠페인)') {
+          if (!p.agreeCampaignPledge) return showErr('f1-err', '사전점검 주의사항 및 금지사항 서약 체크박스를 확인해 주세요.');
           if (!p.carModel || !p.content) return showErr('f1-err', '차량점검(캠페인) 대상자는 점검차종과 점검내용을 입력해 주세요.');
           if (!p.preRequest) return showErr('f1-err', '8) 사전 출입요청 여부를 선택해 주세요.');
-          if (!p.agreeCampaignPledge) return showErr('f1-err', '사전점검 주의사항 및 금지사항 서약 체크박스를 확인해 주세요.');
+          const campChecks = ['f1-camp-9', 'f1-camp-10', 'f1-camp-11', 'f1-camp-12', 'f1-camp-13'];
+          if (campChecks.some(id => !document.getElementById(id)?.checked)) {
+            return showErr('f1-err', '9~13번 필수 준수사항 체크박스를 모두 확인해 주세요. (미동의 시 출입 불가)');
+          }
         }
       }
 
