@@ -278,6 +278,13 @@
       el.textContent = '⚠️ ' + msg;
       el.style.display = 'block';
     }
+    async function logQrVisit() {
+      try {
+        await fetch(`${CHALLENGE_ENDPOINT}?mode=${encodeURIComponent(mode)}&k=${encodeURIComponent(qrKey)}&visit=1`, { cache: 'no-store' });
+      } catch (_) {}
+    }
+    logQrVisit();
+
     async function postToServer(payload) {
       const chRes = await fetch(CHALLENGE_ENDPOINT, { cache: 'no-store' });
       const chRaw = await chRes.text();
