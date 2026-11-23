@@ -317,7 +317,25 @@
           : `✅ '${val}' 방문자는 1차 출입등록만 작성하시면 완료됩니다. (2차 양식 작성 불필요)`;
       }
     }
-    function selectSingleOption(group, val) {
+    function selectMeetingCheck(val) {
+      const yesEl = document.getElementById('fm-sched-yes');
+      const noEl = document.getElementById('fm-sched-no');
+      if (val === '유') {
+        if (yesEl?.checked) {
+          if (noEl) noEl.checked = false;
+          selectedMeetingScheduled = '유';
+        } else {
+          selectedMeetingScheduled = '';
+        }
+      } else {
+        if (noEl?.checked) {
+          if (yesEl) yesEl.checked = false;
+          selectedMeetingScheduled = '무';
+        } else {
+          selectedMeetingScheduled = '';
+        }
+      }
+    }
       if (group === 'visitor') selectedVisitorType = val;
       if (group === 'pickup') selectedPickupPlace = val;
       if (group === 'prereq') selectedPreRequest = val;
@@ -326,6 +344,8 @@
         btn.classList.toggle('active', btn.dataset.val === val);
       });
     }
+
+    function selectSingleOption(group, val) {
 
     if (mode === '1') {
       document.title = '[남양출고센터] 출입 통합관리 등록 및 서약서 (1차)';
@@ -453,8 +473,8 @@
             <div class="field">
               <label>회의 사전약속 유무<span class="req">*</span></label>
               <div class="purpose-grid">
-                <button type="button" class="purpose-btn opt-btn" data-group="meeting" data-val="유" onclick="selectSingleOption('meeting','유')">☑️ 유</button>
-                <button type="button" class="purpose-btn opt-btn" data-group="meeting" data-val="무" onclick="selectSingleOption('meeting','무')">☑️ 무</button>
+                <label class="check-row"><input type="checkbox" id="fm-sched-yes" onchange="selectMeetingCheck('유')" /><span>유</span></label>
+                <label class="check-row"><input type="checkbox" id="fm-sched-no" onchange="selectMeetingCheck('무')" /><span>무</span></label>
               </div>
             </div>
             <div class="grid-2">
