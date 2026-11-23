@@ -551,14 +551,11 @@
           <p>차량점검(캠페인) 대상자만 작업 완료 후 작성해 주세요. 완료시간은 제출 시각으로 자동 기록됩니다.</p>
         </div>
         <div id="form-box">
-          <div class="info-banner">💡 <b>차량점검(캠페인) 대상자 전용</b>입니다. 1차 출입등록 시 발급된 <b>확인코드(예: NY-1234)</b>와 <b>업체명 · 성명/직급 · 연락처</b>를 동일하게 입력해 주세요.</div>
+          <div class="info-banner">💡 <b>차량점검(캠페인) 대상자 전용</b>입니다. 1차 출입등록 시 입력한 <b>휴대폰 번호</b>를 입력하시면 자동으로 매칭됩니다.</div>
           <input type="text" id="hp-website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true" />
           <div class="card">
-            <h2 class="sec-title">👤 작업자 확인 정보</h2>
-            <div class="field"><label for="f2-code">0) 1차 접수 확인코드<span class="req">*</span></label><input id="f2-code" class="inp" type="text" placeholder="예: NY-1234 (1차 등록 완료 화면에서 확인)" /></div>
-            <div class="field"><label for="f2-company">1) 업체명(소속)<span class="req">*</span></label><input id="f2-company" class="inp" type="text" placeholder="예: 현대자동차 울산공장 품관2부" /></div>
-            <div class="field"><label for="f2-name">2) 성명/직급<span class="req">*</span></label><input id="f2-name" class="inp" type="text" placeholder="예: 홍길동(매니저)" /></div>
-            <div class="field"><label for="f2-phone">3) 연락처<span class="req">*</span></label><input id="f2-phone" class="inp" type="tel" inputmode="numeric" oninput="formatPhone(this)" placeholder="예: 010-1234-1234" /></div>
+            <h2 class="sec-title">📱 작업자 휴대폰 번호 확인</h2>
+            <div class="field"><label for="f2-phone">휴대폰 번호<span class="req">*</span></label><input id="f2-phone" class="inp" type="tel" inputmode="numeric" oninput="formatPhone(this)" placeholder="1차 등록 시 입력한 번호 (예: 010-1234-1234)" /></div>
           </div>
           <div class="card">
             <h2 class="sec-title">📊 점검 결과 입력</h2>
@@ -568,10 +565,10 @@
             </div>
             <div class="field"><label for="f2-note">특이사항</label><textarea id="f2-note" class="ta" placeholder="예: 특이사항 없음 (특이사항 발생 시 상세 내용 입력)"></textarea></div>
           </div>
-          <div class="card" style="border-color:#fca5a5;background:#fef2f2;">
-            <label class="check-row" style="background:#ffffff;border-color:#f87171;color:#991b1b;">
-              <input type="checkbox" id="f2-no-photo" />
-              <span>[필수] 남양출고센터 내부는 보안장소로 사진 촬영이 불가합니다.<span class="req">*</span></span>
+          <div class="card" style="border-color:#7dd3fc;background:#f0f9ff;">
+            <label class="check-row" style="background:#ffffff;border-color:#38bdf8;color:#0c4a6e;">
+              <input type="checkbox" id="f2-office-return" />
+              <span>[필수] 2층 사무실에 방문하여, 작업완료 결과를 공유하고, 완장 반납을 진행하였습니다.<span class="req">*</span></span>
             </label>
           </div>
           <div id="f2-err" class="err-box"></div>
@@ -691,34 +688,32 @@
 
     async function submit2() {
       document.getElementById('f2-err').style.display = 'none';
-      const agreeNoPhoto = document.getElementById('f2-no-photo')?.checked || false;
-      if (!agreeNoPhoto) return showErr('f2-err', '남양출고센터 내부 사진 촬영 불가 안내 체크박스를 확인해 주세요.');
+      const agreeOfficeReturn = document.getElementById('f2-office-return')?.checked || false;
+      if (!agreeOfficeReturn) return showErr('f2-err', '2층 사무실 방문 결과 공유 및 완장 반납 확인 체크박스를 확인해 주세요.');
       const p = {
         mode: '2',
-        agreeNoPhoto,
-        confirmCode: document.getElementById('f2-code').value.trim().toUpperCase(),
-        company: document.getElementById('f2-company').value.trim(),
-        name: document.getElementById('f2-name').value.trim(),
+        agreeOfficeReturn,
         phone: document.getElementById('f2-phone').value.trim(),
         inspectedCount: document.getElementById('f2-inspected').value.trim(),
         fixedCount: document.getElementById('f2-fixed').value.trim(),
         note: document.getElementById('f2-note').value.trim() || '특이사항 없음',
       };
-      if (!p.confirmCode || !p.company || !p.name || !p.phone || p.inspectedCount === '' || p.fixedCount === '') return showErr('f2-err', '1차 확인코드 및 모든 필수 항목을 입력해 주세요.');
+      if (!p.phone || p.inspectedCount === '' || p.fixedCount === '') return showErr('f2-err', '휴대폰 번호, 점검대수, 조치대수를 모두 입력해 주세요.');
       const btn = document.getElementById('f2-btn');
       btn.disabled = true; btn.textContent = '⏳ 전송 중...';
       try {
         const res = await postToServer(p);
+        const s = res.summary || {};
         document.getElementById('form-box').style.display = 'none';
         document.getElementById('done-box').style.display = 'block';
         document.getElementById('done-ts').textContent = `완료 시각: ${res.timestamp} · 매칭상태: ${res.matchStatus}`;
         document.getElementById('done-tbl').innerHTML =
-          `<tr><th>업체명</th><td>${esc(p.company)}</td></tr>` +
-          `<tr><th>성명/직급</th><td>${esc(p.name)}</td></tr>` +
-          `<tr><th>연락처</th><td>${esc(p.phone)}</td></tr>` +
-          `<tr><th>점검대수</th><td>${esc(p.inspectedCount)}대</td></tr>` +
-          `<tr><th>조치대수</th><td>${esc(p.fixedCount)}대</td></tr>` +
-          `<tr><th>특이사항</th><td>${esc(p.note)}</td></tr>`;
+          `<tr><th>업체명</th><td>${esc(s.company || '-')}</td></tr>` +
+          `<tr><th>성명/직급</th><td>${esc(s.name || '-')}</td></tr>` +
+          `<tr><th>휴대폰 번호</th><td>${esc(s.phone || p.phone)}</td></tr>` +
+          `<tr><th>점검대수</th><td>${esc(s.inspectedCount || p.inspectedCount)}대</td></tr>` +
+          `<tr><th>조치대수</th><td>${esc(s.fixedCount || p.fixedCount)}대</td></tr>` +
+          `<tr><th>특이사항</th><td>${esc(s.note || p.note)}</td></tr>`;
       } catch (e) {
         btn.disabled = false; btn.textContent = '🏁 2차 완료 통보 제출';
         showErr('f2-err', '전송 오류: ' + e.message);
