@@ -263,6 +263,13 @@
       else if (v.length >= 4) el.value = v.replace(/^(\d{3})(\d+)$/, '$1-$2');
       else el.value = v;
     }
+    function formatHeadcount(el) {
+      const digits = el.value.replace(/[^0-9]/g, '').slice(0, 3);
+      el.value = digits ? digits + '명' : '';
+      if (digits && el.setSelectionRange) {
+        try { el.setSelectionRange(digits.length, digits.length); } catch (_) {}
+      }
+    }
     function showErr(id, msg) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -486,7 +493,7 @@
             <h2 class="sec-title">✍️ 출입자 정보 입력</h2>
             <div class="field"><label for="f1-company">1) 업체명(소속)<span class="req">*</span></label><input id="f1-company" class="inp" type="text" placeholder="예: 현대자동차 울산공장 품관2부" /></div>
             <div class="field"><label for="f1-name">2) 성명/직급<span class="req">*</span></label><input id="f1-name" class="inp" type="text" placeholder="예: 홍길동(매니저)" /></div>
-            <div class="field"><label for="f1-headcount">3) 인원수<span class="req">*</span></label><input id="f1-headcount" class="inp" type="text" placeholder="예: 3명(본인포함)" /></div>
+            <div class="field"><label for="f1-headcount">3) 인원수<span class="req">*</span></label><input id="f1-headcount" class="inp" type="text" inputmode="numeric" oninput="formatHeadcount(this)" placeholder="숫자만 입력 (예: 3 → 3명)" /></div>
             <div class="field"><label for="f1-phone">4) 연락처<span class="req">*</span></label><input id="f1-phone" class="inp" type="tel" inputmode="numeric" oninput="formatPhone(this)" placeholder="예: 010-1234-1234" /></div>
             <div class="field"><label for="f1-carno">5) 차량번호<span class="opt">(센터내 차량 출입시)</span></label><input id="f1-carno" class="inp" type="text" placeholder="예: 12가3456 (미출입 시 공란)" /></div>
             <div id="f1-campaign-box" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed #cbd5e1;">
