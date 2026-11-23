@@ -252,6 +252,7 @@
     let selectedVisitorType = '';
     let selectedPickupPlace = '';
     let selectedPreRequest = '';
+    let selectedMeetingScheduled = '';
 
     function esc(s) {
       return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -294,14 +295,17 @@
         btn.classList.toggle('active', btn.dataset.val === val);
       });
       const isPickup = (val === '차량인수');
+      const isMeeting = (val === '회의');
       const isCampaign = (val === '차량점검(캠페인)');
       const pickupCard = document.getElementById('f1-pickup-card');
+      const meetingCard = document.getElementById('f1-meeting-card');
       const generalCard = document.getElementById('f1-general-card');
       const campNoticeCard = document.getElementById('f1-campaign-notice-card');
       const campBox = document.getElementById('f1-campaign-box');
       const noPhotoBox = document.getElementById('f1-no-photo-box');
       const noticeEl = document.getElementById('f1-purpose-notice');
       if (pickupCard) pickupCard.style.display = isPickup ? 'block' : 'none';
+      if (meetingCard) meetingCard.style.display = isMeeting ? 'block' : 'none';
       if (generalCard) generalCard.style.display = isPickup ? 'none' : 'block';
       if (campNoticeCard) campNoticeCard.style.display = isCampaign ? 'block' : 'none';
       if (campBox) campBox.style.display = isCampaign ? 'block' : 'none';
@@ -317,6 +321,7 @@
       if (group === 'visitor') selectedVisitorType = val;
       if (group === 'pickup') selectedPickupPlace = val;
       if (group === 'prereq') selectedPreRequest = val;
+      if (group === 'meeting') selectedMeetingScheduled = val;
       document.querySelectorAll(`.opt-btn[data-group="${group}"]`).forEach(btn => {
         btn.classList.toggle('active', btn.dataset.val === val);
       });
@@ -440,6 +445,21 @@
             </div>
             <div class="field">
               <label class="check-row"><input type="checkbox" id="fp-doc" /><span>7. 차량 인수 후 나가실때 안내받으신 '서류'를 정문 제출해야 합니다.<span class="req">*</span></span></label>
+            </div>
+          </div>
+
+          <div id="f1-meeting-card" class="card" style="display:none;">
+            <h2 class="sec-title">💬 회의 사전약속 확인</h2>
+            <div class="field">
+              <label>회의 사전약속 유무<span class="req">*</span></label>
+              <div class="purpose-grid">
+                <button type="button" class="purpose-btn opt-btn" data-group="meeting" data-val="유" onclick="selectSingleOption('meeting','유')">☑️ 유</button>
+                <button type="button" class="purpose-btn opt-btn" data-group="meeting" data-val="무" onclick="selectSingleOption('meeting','무')">☑️ 무</button>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field" style="margin-bottom:0;"><label for="fm-time">회의 약속시간</label><input id="fm-time" class="inp" type="text" placeholder="예: 14:30" /></div>
+              <div class="field" style="margin-bottom:0;"><label for="fm-host">미팅 대상자 성함</label><input id="fm-host" class="inp" type="text" placeholder="예: 김담당(매니저)" /></div>
             </div>
           </div>
 
@@ -575,8 +595,17 @@
           content: document.getElementById('f1-content').value.trim(),
           preRequest: selectedPreRequest,
           agreeCampaignPledge: document.getElementById('f1-camp-pledge')?.checked || false,
+          meetingScheduled: selectedMeetingScheduled,
+          meetingTime: document.getElementById('fm-time')?.value.trim() || '',
+          meetingHost: document.getElementById('fm-host')?.value.trim() || '',
         };
         if (!p.company || !p.name || !p.headcount || !p.phone) return showErr('f1-err', '업체명(소속), 성명/직급, 인원수, 연락처를 모두 입력해 주세요.');
+        if (p.purpose === '회의') {
+          if (!p.meetingScheduled) return showErr('f1-err', '회의 사전약속 유무(유/무)를 선택해 주세요.');
+          if (p.meetingScheduled === '유' && (!p.meetingTime || !p.meetingHost)) {
+            return showErr('f1-err', '사전약속이 있는 경우 회의 약속시간과 미팅 대상자 성함을 입력해 주세요.');
+          }
+        }
         if (p.purpose === '차량점검(캠페인)') {
           if (!p.agreeCampaignPledge) return showErr('f1-err', '사전점검 주의사항 및 금지사항 서약 체크박스를 확인해 주세요.');
           if (!p.carModel || !p.content) return showErr('f1-err', '차량점검(캠페인) 대상자는 점검차종과 점검내용을 입력해 주세요.');
@@ -616,6 +645,7 @@
             `<tr><th>인원수</th><td>${esc(s.headcount)}</td></tr>` +
             `<tr><th>연락처</th><td>${esc(s.phone)}</td></tr>` +
             `<tr><th>차량번호</th><td>${esc(s.carNo || '-')}</td></tr>` +
+            (s.purpose === '회의' ? `<tr><th>사전약속</th><td>${esc(s.meetingScheduled)} (시간: ${esc(s.meetingTime || '-')} / 대상: ${esc(s.meetingHost || '-')})</td></tr>` : '') +
             (res.requiresSecondForm ? `<tr><th>점검차종</th><td>${esc(s.carModel)}</td></tr><tr><th>점검내용</th><td>${esc(s.content)}</td></tr><tr><th>사전출입요청</th><td>${esc(s.preRequest)}</td></tr>` : '');
         }
       } catch (e) {
