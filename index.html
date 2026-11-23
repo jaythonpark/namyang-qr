@@ -248,6 +248,7 @@
     let selectedPurpose = '';
     let selectedVisitorType = '';
     let selectedPickupPlace = '';
+    let selectedPreRequest = '';
 
     function esc(s) {
       return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -300,6 +301,7 @@
     function selectSingleOption(group, val) {
       if (group === 'visitor') selectedVisitorType = val;
       if (group === 'pickup') selectedPickupPlace = val;
+      if (group === 'prereq') selectedPreRequest = val;
       document.querySelectorAll(`.opt-btn[data-group="${group}"]`).forEach(btn => {
         btn.classList.toggle('active', btn.dataset.val === val);
       });
@@ -407,6 +409,41 @@
             <div id="f1-campaign-box" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed #cbd5e1;">
               <div class="field"><label for="f1-car">6) 점검차종<span class="req">*</span></label><input id="f1-car" class="inp" type="text" placeholder="예: GV60, GV70" /></div>
               <div class="field"><label for="f1-content">7) 점검내용<span class="req">*</span></label><textarea id="f1-content" class="ta" placeholder="예: 내/외관 점검"></textarea></div>
+              <div class="field">
+                <label>8) 사전 출입요청 여부<span class="req">*</span></label>
+                <div class="purpose-grid">
+                  <button type="button" class="purpose-btn opt-btn" data-group="prereq" data-val="미실시" onclick="selectSingleOption('prereq','미실시')">미실시</button>
+                  <button type="button" class="purpose-btn opt-btn" data-group="prereq" data-val="실시(협조전)" onclick="selectSingleOption('prereq','실시(협조전)')">실시(협조전)</button>
+                  <button type="button" class="purpose-btn opt-btn" data-group="prereq" data-val="실시(이메일발송)" onclick="selectSingleOption('prereq','실시(이메일발송)')">실시(이메일발송)</button>
+                  <button type="button" class="purpose-btn opt-btn" data-group="prereq" data-val="실시(유선연락)" onclick="selectSingleOption('prereq','실시(유선연락)')">실시(유선연락)</button>
+                </div>
+              </div>
+              <div class="notice-box" style="margin-top:14px;background:#fff7ed;border-color:#fdba74;">
+                <div style="font-weight:800;font-size:13.5px;color:#9a3412;margin-bottom:6px;">📋 남양출고센터 내수 완성차 사전점검 주의사항 및 금지사항</div>
+                <div style="font-size:12px;color:#7c2d12;margin-bottom:8px;">사전점검 실시 및 완료후 아래 내용에 대한 위반사항 발견시 출고센터에서 CLAIM을 제기하여도 일체 수용할 것을 서약 합니다. (직영 및 협력업체 동일 적용)</div>
+                <div style="font-weight:800;color:#0f172a;margin-bottom:4px;">▣ 주의사항</div>
+                <ol class="notice-list" style="margin-bottom:8px;">
+                  <li>작업중 옆차와의 간격을 인식하지 못하고 도어 OPEN하여 DENT &amp; 외관손상 발생치 않도록 할 것</li>
+                  <li>신체 복장에서 버클, 단추, 지퍼가이드, 명찰 등 복장의 돌출물에 의한 내외관 손상 주의</li>
+                  <li>실내 작업중 부주의로 인한 부품손상, 실내오염 등 주의</li>
+                  <li>작업완료후 도어 닫힘 불량 및 시동방치로 인한 배터리 방전, 도어 글라스 및 선루프 오픈되어 빗물 유입 등이 발생치 않도록 주의할 것</li>
+                  <li>기타 작업구역의 점검과 관련없이 유무형의 회사 재산에 대한 피해가 발생치 않도록 할 것</li>
+                  <li><b>당사의 보안규정을 철저히 준수할 것.</b></li>
+                </ol>
+                <div style="font-weight:800;color:#991b1b;margin-bottom:4px;">▣ 금지사항</div>
+                <ol class="notice-list">
+                  <li><b>핸드폰으로 사진촬영 및 전송 절대 금지</b> (↳ 적발시 당사 보안규정에 의거 처리)</li>
+                  <li>차량 실내 승 하차시 플로워 카페트 오염을 방지하기 위해 매트 등을 사용하여 신발이 카페트에 직접 닿지 않도록 할 것. (매트류 사용없이 차량 실내 출입금지)</li>
+                  <li>임시번호 부착차량은 출고 차량으로 일체 점검하지 말 것 (사전협조요청)</li>
+                  <li>허가 없이 차량 운전 및 이동금지 (차량 접촉 및 충돌사고 발생할 수 있음)</li>
+                  <li>점검인원 차량 인도장 및 치장장 출입금지</li>
+                  <li>점검 작업후 작업표시 스티커 및 문제차 TAG 부착 금지.</li>
+                  <li>사전점검 실시전 또는 실시중이라도 눈,비,강풍 (강우량 상관없이) 발생시 사전점검 허가 불가</li>
+                </ol>
+              </div>
+              <div class="field" style="margin-top:8px;">
+                <label class="check-row"><input type="checkbox" id="f1-camp-pledge" /><span>[필수] 위 사전점검 주의사항 및 금지사항을 숙지하였으며, 위반 시 CLAIM 수용을 서약합니다.<span class="req">*</span></span></label>
+              </div>
             </div>
           </div>
 
@@ -494,9 +531,15 @@
           carNo: document.getElementById('f1-carno').value.trim(),
           carModel: document.getElementById('f1-car').value.trim(),
           content: document.getElementById('f1-content').value.trim(),
+          preRequest: selectedPreRequest,
+          agreeCampaignPledge: document.getElementById('f1-camp-pledge')?.checked || false,
         };
         if (!p.company || !p.name || !p.headcount || !p.phone) return showErr('f1-err', '업체명(소속), 성명/직급, 인원수, 연락처를 모두 입력해 주세요.');
-        if (p.purpose === '차량점검(캠페인)' && (!p.carModel || !p.content)) return showErr('f1-err', '차량점검(캠페인) 대상자는 점검차종과 점검내용을 입력해 주세요.');
+        if (p.purpose === '차량점검(캠페인)') {
+          if (!p.carModel || !p.content) return showErr('f1-err', '차량점검(캠페인) 대상자는 점검차종과 점검내용을 입력해 주세요.');
+          if (!p.preRequest) return showErr('f1-err', '8) 사전 출입요청 여부를 선택해 주세요.');
+          if (!p.agreeCampaignPledge) return showErr('f1-err', '사전점검 주의사항 및 금지사항 서약 체크박스를 확인해 주세요.');
+        }
       }
 
       const btn = document.getElementById('f1-btn');
@@ -525,7 +568,7 @@
             `<tr><th>인원수</th><td>${esc(s.headcount)}</td></tr>` +
             `<tr><th>연락처</th><td>${esc(s.phone)}</td></tr>` +
             `<tr><th>차량번호</th><td>${esc(s.carNo || '-')}</td></tr>` +
-            (res.requiresSecondForm ? `<tr><th>점검차종</th><td>${esc(s.carModel)}</td></tr><tr><th>점검내용</th><td>${esc(s.content)}</td></tr>` : '');
+            (res.requiresSecondForm ? `<tr><th>점검차종</th><td>${esc(s.carModel)}</td></tr><tr><th>점검내용</th><td>${esc(s.content)}</td></tr><tr><th>사전출입요청</th><td>${esc(s.preRequest)}</td></tr>` : '');
         }
       } catch (e) {
         btn.disabled = false; btn.textContent = '✅ 1차 출입 등록 제출';
